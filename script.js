@@ -5,7 +5,7 @@
 // ------ CONSTANTS & CONFIGS ------
 const WEB3FORMS_SYNC = {
   enabled: true,
-  accessKey: "5132471f-04cd-486f-a8d9-32456ac56e5e"
+  accessKey: "49555db9-2cf5-4a5a-a742-f50352f68fbf"
 };
 
 const DEFAULT_SETTINGS = {
