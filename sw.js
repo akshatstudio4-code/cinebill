@@ -3,7 +3,7 @@
    Handles caching for offline-first experience
    ============================================================ */
 
-const CACHE_NAME = 'cinebill-v9';
+const CACHE_NAME = 'cinebill-v10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
