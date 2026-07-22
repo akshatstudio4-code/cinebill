@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Daily collection sheet & bill management for Mrityunjay Cineplex. Track shows, tickets, revenue and generate PDF reports.">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CineBill">
+
+  <title>Mrityunjay Cineplex - Daily Collection</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/icons/icon-512.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-512.png">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <!-- jsPDF for PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ====== SPLASH SCREEN ====== -->
+  <div id="splashScreen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-icon">
+        <span class="material-icons-round">movie</span>
+      </div>
+      <h1 class="splash-title">MRITYUNJAY CINEPLEX</h1>
+      <p class="splash-subtitle">Daily Collection Manager</p>
+      <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== APP SHELL ====== -->
+  <div id="appShell" class="app-shell hidden">
+
+    <!-- ====== TOP APP BAR ====== -->
+    <header id="appBar" class="app-bar">
+      <div class="app-bar-content">
+        <div class="app-bar-left">
+          <span class="material-icons-round app-bar-icon">movie</span>
+          <div>
+            <h1 id="appBarTitle" class="app-bar-title">MRITYUNJAY CINEPLEX</h1>
+            <p class="app-bar-subtitle">Daily Collection</p>
+          </div>
+        </div>
+        <div class="app-bar-actions">
+          <button id="btnThemeToggle" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
+            <span class="material-icons-round">dark_mode</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main id="mainContent" class="main-content">
+
+      <!-- ======== PAGE: HOME ======== -->
+      <section id="pageHome" class="page active">
+        <div class="page-inner">
+
+          <!-- Movie Info Card -->
+          <div class="card card-elevated animate-in">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">theaters</span>
+              <h2 class="card-title">Movie Details</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="movieName" class="form-label">Movie Name</label>
+                <input type="text" id="movieName" list="movieList" class="form-input" placeholder="Enter movie name" autocomplete="off">
+                <datalist id="movieList"></datalist>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="billDate" class="form-label">Date</label>
+                  <input type="date" id="billDate" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="dayNumber" class="form-label">Day Number</label>
+                  <input type="number" id="dayNumber" class="form-input" placeholder="Day" min="1" inputmode="numeric">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="balconyRate" class="form-label">Balcony Rate (Rs.)</label>
+                  <input type="number" id="balconyRate" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                  <label for="reserveRate" class="form-label">Reserve Rate (Rs.)</label>
+                  <input type="number" id="reserveRate" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="previousCollection" class="form-label">Previous Collection (Rs.)</label>
+                  <input type="number" id="previousCollection" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                  <label for="previousTickets" class="form-label">Previous Tickets</label>
+                  <input type="number" id="previousTickets" class="form-input" placeholder="0" min="0" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Show Cards -->
+          <div id="showCardsContainer">
+            <!-- Show 1: 12:00 PM -->
+            <div class="card card-elevated show-card animate-in" data-show="0">
+              <div class="card-header">
+                <span class="material-icons-round card-icon show-icon">schedule</span>
+                <h2 class="card-title">12:00 PM</h2>
+                <span class="show-amount-badge" data-amount="0">Rs. 0.00</span>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Balcony Tickets</label>
+                    <input type="number" class="form-input show-balcony" data-show="0" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Reserve Tickets</label>
+                    <input type="number" class="form-input show-reserve" data-show="0" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="show-amount-display">
+                  <span class="amount-label">Net Amount</span>
+                  <span class="amount-value" data-show-total="0">Rs. 0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Show 2: 3:00 PM -->
+            <div class="card card-elevated show-card animate-in" data-show="1">
+              <div class="card-header">
+                <span class="material-icons-round card-icon show-icon">schedule</span>
+                <h2 class="card-title">3:00 PM</h2>
+                <span class="show-amount-badge" data-amount="1">Rs. 0.00</span>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Balcony Tickets</label>
+                    <input type="number" class="form-input show-balcony" data-show="1" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Reserve Tickets</label>
+                    <input type="number" class="form-input show-reserve" data-show="1" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="show-amount-display">
+                  <span class="amount-label">Net Amount</span>
+                  <span class="amount-value" data-show-total="1">Rs. 0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Show 3: 6:00 PM -->
+            <div class="card card-elevated show-card animate-in" data-show="2">
+              <div class="card-header">
+                <span class="material-icons-round card-icon show-icon">schedule</span>
+                <h2 class="card-title">6:00 PM</h2>
+                <span class="show-amount-badge" data-amount="2">Rs. 0.00</span>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Balcony Tickets</label>
+                    <input type="number" class="form-input show-balcony" data-show="2" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Reserve Tickets</label>
+                    <input type="number" class="form-input show-reserve" data-show="2" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="show-amount-display">
+                  <span class="amount-label">Net Amount</span>
+                  <span class="amount-value" data-show-total="2">Rs. 0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Show 4: 9:00 PM -->
+            <div class="card card-elevated show-card animate-in" data-show="3">
+              <div class="card-header">
+                <span class="material-icons-round card-icon show-icon">schedule</span>
+                <h2 class="card-title">9:00 PM</h2>
+                <span class="show-amount-badge" data-amount="3">Rs. 0.00</span>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Balcony Tickets</label>
+                    <input type="number" class="form-input show-balcony" data-show="3" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Reserve Tickets</label>
+                    <input type="number" class="form-input show-reserve" data-show="3" placeholder="0" min="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="show-amount-display">
+                  <span class="amount-label">Net Amount</span>
+                  <span class="amount-value" data-show-total="3">Rs. 0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="card card-elevated summary-card animate-in">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">assessment</span>
+              <h2 class="card-title">Today's Summary</h2>
+            </div>
+            <div class="card-body">
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label">Today's Tickets</span>
+                  <span id="totalTickets" class="summary-value">0</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Previous Tickets</span>
+                  <span id="prevTicketsDisplay" class="summary-value dim">0</span>
+                </div>
+                <div class="summary-item highlight">
+                  <span class="summary-label">Total Tickets</span>
+                  <span id="grandTotalTickets" class="summary-value grand">0</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Today's Collection</span>
+                  <span id="todaysCollection" class="summary-value">Rs. 0.00</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Previous Collection</span>
+                  <span id="prevCollectionDisplay" class="summary-value dim">Rs. 0.00</span>
+                </div>
+                <div class="summary-item highlight">
+                  <span class="summary-label">Grand Total</span>
+                  <span id="grandTotal" class="summary-value grand">Rs. 0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-bar animate-in">
+            <button id="btnSaveBill" class="btn btn-primary btn-large btn-block">
+              <span class="material-icons-round">save</span>
+              Save Bill
+            </button>
+            <div class="action-row">
+              <button id="btnDuplicate" class="btn btn-secondary" title="Duplicate previous day's entry">
+                <span class="material-icons-round">content_copy</span>
+                Duplicate
+              </button>
+              <button id="btnResetForm" class="btn btn-outline" title="Reset all entries">
+                <span class="material-icons-round">restart_alt</span>
+                Reset
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======== PAGE: HISTORY ======== -->
+      <section id="pageHistory" class="page">
+        <div class="page-inner">
+          <div class="page-header animate-in">
+            <h2 class="page-heading">Bill History</h2>
+            <p class="page-description">View and manage saved bills</p>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="search-bar animate-in">
+            <span class="material-icons-round search-icon">search</span>
+            <input type="text" id="historySearch" class="search-input" placeholder="Search by movie, date, or day...">
+            <button id="btnClearSearch" class="icon-btn search-clear hidden">
+              <span class="material-icons-round">close</span>
+            </button>
+          </div>
+
+          <!-- History List -->
+          <div id="historyList" class="history-list">
+            <!-- Bills will be rendered here -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="historyEmpty" class="empty-state hidden">
+            <span class="material-icons-round empty-icon">receipt_long</span>
+            <h3>No Bills Found</h3>
+            <p>Saved bills will appear here</p>
+          </div>
+
+          <!-- Backup Actions -->
+          <div class="backup-actions animate-in">
+            <button id="btnExportJSON" class="btn btn-secondary btn-block">
+              <span class="material-icons-round">file_download</span>
+              Export Backup (JSON)
+            </button>
+            <button id="btnImportJSON" class="btn btn-outline btn-block">
+              <span class="material-icons-round">file_upload</span>
+              Import Backup (JSON)
+            </button>
+            <input type="file" id="importFileInput" accept=".json" class="hidden-file-input">
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== PAGE: ANALYTICS ======== -->
+      <section id="pageAnalytics" class="page">
+        <div class="page-inner">
+          <div class="page-header animate-in">
+            <h2 class="page-heading">Analytics</h2>
+            <p class="page-description">Revenue insights & statistics</p>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card animate-in" style="--delay: 0.05s">
+              <div class="stat-icon-wrap green">
+                <span class="material-icons-round">account_balance_wallet</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Monthly Revenue</span>
+                <span id="statTotalRevenue" class="stat-value">Rs. 0</span>
+              </div>
+            </div>
+            <div class="stat-card animate-in" style="--delay: 0.1s">
+              <div class="stat-icon-wrap blue">
+                <span class="material-icons-round">confirmation_number</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Monthly Tickets</span>
+                <span id="statTotalTickets" class="stat-value">0</span>
+              </div>
+            </div>
+            <div class="stat-card animate-in" style="--delay: 0.15s">
+              <div class="stat-icon-wrap orange">
+                <span class="material-icons-round">trending_up</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Avg Daily Collection</span>
+                <span id="statAvgDaily" class="stat-value">Rs. 0</span>
+              </div>
+            </div>
+            <div class="stat-card animate-in" style="--delay: 0.2s">
+              <div class="stat-icon-wrap purple">
+                <span class="material-icons-round">local_movies</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Most Popular Movie</span>
+                <span id="statPopularMovie" class="stat-value">—</span>
+              </div>
+            </div>
+            <div class="stat-card animate-in" style="--delay: 0.25s">
+              <div class="stat-icon-wrap teal">
+                <span class="material-icons-round">calendar_month</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Monthly Bills</span>
+                <span id="statTotalBills" class="stat-value">0</span>
+              </div>
+            </div>
+            <div class="stat-card animate-in" style="--delay: 0.3s">
+              <div class="stat-icon-wrap red">
+                <span class="material-icons-round">emoji_events</span>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Best Day Revenue</span>
+                <span id="statBestDay" class="stat-value">Rs. 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Revenue -->
+          <div class="card card-elevated animate-in" style="--delay: 0.35s">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">bar_chart</span>
+              <h2 class="card-title">Monthly Revenue</h2>
+            </div>
+            <div class="card-body">
+              <div id="monthlyChart" class="chart-container">
+                <!-- Bar chart rendered via JS -->
+              </div>
+              <div id="monthlyChartEmpty" class="empty-state-small hidden">
+                <p>No data available yet</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Movies Performance -->
+          <div class="card card-elevated animate-in" style="--delay: 0.4s">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">movie_filter</span>
+              <h2 class="card-title">Movie Performance</h2>
+            </div>
+            <div class="card-body">
+              <div id="moviePerformanceList" class="performance-list">
+                <!-- Rendered via JS -->
+              </div>
+              <div id="moviePerfEmpty" class="empty-state-small hidden">
+                <p>No movie data yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== PAGE: SETTINGS ======== -->
+      <section id="pageSettings" class="page">
+        <div class="page-inner">
+          <div class="page-header animate-in">
+            <h2 class="page-heading">Settings</h2>
+            <p class="page-description">Configure app preferences</p>
+          </div>
+
+          <div class="card card-elevated animate-in">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">sell</span>
+              <h2 class="card-title">Default Ticket Rates</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="settBalconyRate" class="form-label">Balcony Rate</label>
+                  <input type="number" id="settBalconyRate" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                  <label for="settReserveRate" class="form-label">Reserve Rate</label>
+                  <input type="number" id="settReserveRate" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-elevated animate-in">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">palette</span>
+              <h2 class="card-title">Appearance</h2>
+            </div>
+            <div class="card-body">
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Dark Mode</span>
+                  <span class="setting-desc">Use dark theme</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settDarkMode">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="form-group" style="margin-top: 16px;">
+                <label for="settCurrency" class="form-label">Currency Symbol</label>
+                <select id="settCurrency" class="form-input">
+                  <option value="Rs.">Rs. - Indian Rupee</option>
+                  <option value="$">$ - US Dollar</option>
+                  <option value="€">€ - Euro</option>
+                  <option value="£">£ - Pound</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-elevated animate-in">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">info</span>
+              <h2 class="card-title">About</h2>
+            </div>
+            <div class="card-body">
+              <div class="about-info">
+                <p><strong>Cinema Bill App</strong></p>
+                <p>Version 1.0.0</p>
+                <p class="about-sub">Progressive Web App for cinema daily collection management.</p>
+                <p class="about-sub">Built for <strong>Mrityunjay Cineplex</strong></p>
+              </div>
+            </div>
+          </div>
+
+          <button id="btnSaveSettings" class="btn btn-primary btn-large btn-block animate-in">
+            <span class="material-icons-round">save</span>
+            Save Settings
+          </button>
+
+          <!-- Danger Zone -->
+          <div class="card card-elevated card-danger animate-in" style="margin-top: 24px;">
+            <div class="card-header">
+              <span class="material-icons-round card-icon">warning</span>
+              <h2 class="card-title">Danger Zone</h2>
+            </div>
+            <div class="card-body">
+              <button id="btnClearAllData" class="btn btn-danger btn-block">
+                <span class="material-icons-round">delete_forever</span>
+                Clear All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ====== BOTTOM NAVIGATION ====== -->
+    <nav id="bottomNav" class="bottom-nav">
+      <button class="nav-item active" data-page="pageHome" id="navHome">
+        <span class="material-icons-round">home</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-page="pageHistory" id="navHistory">
+        <span class="material-icons-round">history</span>
+        <span class="nav-label">History</span>
+      </button>
+      <button class="nav-item" data-page="pageAnalytics" id="navAnalytics">
+        <span class="material-icons-round">analytics</span>
+        <span class="nav-label">Analytics</span>
+      </button>
+      <button class="nav-item" data-page="pageSettings" id="navSettings">
+        <span class="material-icons-round">settings</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- ====== TOAST CONTAINER ====== -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ====== CONFIRMATION DIALOG ====== -->
+    <div id="dialogOverlay" class="dialog-overlay hidden">
+      <div class="dialog-box">
+        <div class="dialog-icon-wrap" id="dialogIconWrap">
+          <span class="material-icons-round" id="dialogIcon">help</span>
+        </div>
+        <h3 id="dialogTitle" class="dialog-title">Confirm</h3>
+        <p id="dialogMessage" class="dialog-message">Are you sure?</p>
+        <div class="dialog-actions">
+          <button id="dialogCancel" class="btn btn-outline">Cancel</button>
+          <button id="dialogConfirm" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== EDIT BILL MODAL ====== -->
+    <div id="editModal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2 class="modal-title">Edit Bill</h2>
+          <button id="btnCloseEditModal" class="icon-btn">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="editModalBody">
+          <!-- Edit form rendered via JS -->
+        </div>
+        <div class="modal-footer">
+          <button id="btnCancelEdit" class="btn btn-outline">Cancel</button>
+          <button id="btnSaveEdit" class="btn btn-primary">
+            <span class="material-icons-round">save</span>
+            Update Bill
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== VIEW BILL MODAL ====== -->
+    <div id="viewModal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2 class="modal-title">Bill Details</h2>
+          <button id="btnCloseViewModal" class="icon-btn">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="viewModalBody">
+          <!-- View rendered via JS -->
+        </div>
+        <div class="modal-footer">
+          <button id="btnViewPDF" class="btn btn-secondary">
+            <span class="material-icons-round">picture_as_pdf</span>
+            Download PDF
+          </button>
+          <button id="btnSharePDF" class="btn btn-primary">
+            <span class="material-icons-round">share</span>
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== UNDO SNACKBAR ====== -->
+    <div id="undoSnackbar" class="undo-snackbar hidden">
+      <span class="undo-message">Bill deleted</span>
+      <button id="btnUndo" class="btn-undo">UNDO</button>
+    </div>
+
+    <!-- ====== WATERMARK ====== -->
+    <div style="position: fixed; bottom: 85px; right: 15px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 800; color: rgba(128,128,128,0.3); z-index: 1000; pointer-events: none; letter-spacing: 1px;">
+      akshatstudio
+    </div>
+
+  </div>
+
+  <!-- Main Script -->
+  <script src="script.js"></script>
+</body>
+</html>
